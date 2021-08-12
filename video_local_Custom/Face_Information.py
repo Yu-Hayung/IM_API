@@ -28,10 +28,10 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 #병렬처리
-import multiprocessing as mp
+import multiprocessing as MP
 
 # 사용가능한 CPU 개수 확인
-print('가능한_CPU >> ', mp.cpu_count())
+print('가능한_CPU >> ', MP.cpu_count())
 
 class Face:
     def __init__(self):
@@ -57,7 +57,7 @@ class Face:
 
 import mediapipe as mp
 
-class pose_Detecor():
+class pose_Detector():
     def __init__(self, mode=False, upBody=False, smooth=True, detectionCon=0.7, trackCon=0.5):
         self.mode = mode
         self.upBody = upBody

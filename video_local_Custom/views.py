@@ -101,7 +101,7 @@ class IM_video_Anaylysis(APIView):
 
                         # 시선
                         gaze = Gaze_Regression(list_Face, 0)
-                        Gaze_list.append(pose_Detecor.gaze_Detecor(gaze, img_show))
+                        Gaze_list.append(pose_Detector.gaze_Detecor(gaze, img_show))
 
                         # 동작 검출
                         pose_detector.findPose(img_show)
