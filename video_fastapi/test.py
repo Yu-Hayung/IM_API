@@ -59,12 +59,10 @@ async def video_task(userkey, videoNo, videoaddress):
     Gaze_list = []
     Roll_list = []
     Emotion_list = []
-    Left_Hand_list = []
     Left_Hand_count = 0
     Left_Hand_time_list = []
     Left_Hand_point_list = []
     Left_Hand_point_result = []
-    Right_Hand_list = []
     Right_Hand_count = 0
     Right_Hand_time_list = []
     Right_Hand_point_list = []
@@ -147,28 +145,23 @@ async def video_task(userkey, videoNo, videoaddress):
                     # 왼손 추적 22222222
                     if lmList_pose != 0:
                         if lmList_pose[15][1] < 640 and lmList_pose[15][2] < 480:
-                            Left_hand = (lmList_pose[15][1], lmList_pose[15][2])
-                            Left_Hand_list.append(1)
-                            Left_Hand_time_list.append(1)
+                            Left_hand = [lmList_pose[15][1], lmList_pose[15][2]]
                             Left_Hand_point_list.append(Left_hand)
                         else:
-                            if len(Left_Hand_list) > 3:
+                            if len(Left_Hand_point_list) > 3:
                                 Left_Hand_count += 1
-                                Left_Hand_point_result.append(Left_Hand_point_list)
-                            Left_Hand_list = []
+                                Left_Hand_point_result.extend(Left_Hand_point_list)
                             Left_Hand_point_list = []
+
 
                         # 오른손 추적 22222222
                         if lmList_pose[16][1] < 640 and lmList_pose[16][2] < 480:
                             Right_hand = (lmList_pose[16][1], lmList_pose[16][2])
-                            Right_Hand_list.append(1)
-                            Right_Hand_time_list.append(1)
                             Right_Hand_point_list.append(Right_hand)
                         else:
-                            if len(Right_Hand_list) > 3:
+                            if len(Right_Hand_point_list) > 3:
                                 Right_Hand_count += 1
-                                Right_Hand_point_result.append(Right_Hand_point_list)
-                            Right_Hand_list = []
+                                Right_Hand_point_result.extend(Right_Hand_point_list)
                             Right_Hand_point_list = []
 
                         # 어깨
@@ -186,14 +179,14 @@ async def video_task(userkey, videoNo, videoaddress):
                         # print('landmark >> ', Landmark_list)
 
                         # 어깨 상하
-                        shoulder_vertically_left_count.append(soulder_Detector.shoulder_vertically_left(left_shoulder, Landmark_list))
-                        shoulder_vertically_right_count.append(soulder_Detector.shoulder_vertically_right(right_shoulder, Landmark_list))
+                        shoulder_vertically_left_count.append(shoulder_Detector.shoulder_vertically_left(left_shoulder, Landmark_list))
+                        shoulder_vertically_right_count.append(shoulder_Detector.shoulder_vertically_right(right_shoulder, Landmark_list))
 
                         # 어깨 좌우
-                        shoulder_horizontality_count_value = soulder_Detector.shoulder_horizontality_count(center_shoulder_left, Landmark_list)
+                        shoulder_horizontality_count_value = shoulder_Detector.shoulder_horizontality_count(center_shoulder_left, Landmark_list)
 
                         # 어깨 기울기
-                        shoulder_slope_value = soulder_Detector.shoulder_slope(right_shoulder, left_shoulder)
+                        shoulder_slope_value = shoulder_Detector.shoulder_slope(right_shoulder, left_shoulder)
                         Shoulder_slope_list.append(shoulder_slope_value)
         else:
             break
@@ -247,11 +240,11 @@ async def video_task(userkey, videoNo, videoaddress):
     # print(len(Gaze_list))
 
     # 얼굴 각도 결과
-    Roll_mean_value = soulder_Detector.Roll_slope_mean(Roll_list)
+    Roll_mean_value = shoulder_Detector.Roll_slope_mean(Roll_list)
     # print(Roll_mean_value)
 
     # 어깨 각도 결과
-    Shoulder_slope_mean_value = soulder_Detector.Shoulder_slope_mean(Shoulder_slope_list)
+    Shoulder_slope_mean_value = shoulder_Detector.Shoulder_slope_mean(Shoulder_slope_list)
     # print(Shoulder_slope_mean_value)
 
     # 어깨 움직임 결과
@@ -281,39 +274,39 @@ async def video_task(userkey, videoNo, videoaddress):
     # print(Center_shoulder_min)
 
     # 손
-    Left_Hand_time = Left_Hand_time_calculation(Left_Hand_time_list)
-    Right_Hand_time = Right_Hand_time_calculation(Right_Hand_time_list)
+    Left_Hand_time = Left_Hand_time_calculation(Left_Hand_point_result)
+    Right_Hand_time = Right_Hand_time_calculation(Right_Hand_point_result)
 
 
-    result_data = OrderedDict()
-    result_data["userkey"] = userkey
-    result_data["videoNo"] = videoNo
-    result_data["result"] = {"face_check": Face_analy_result, "sound_check": sound_confirm,
-                             "emotion_surprise": Emotion_surprise_mean, "emotion_fear": Emotion_fear_mean,
-                             "emotion_aversion": Emotion_disgust_mean, "emotion_happy": Emotion_happy_mean,
-                             "emotion_sadness": Emotion_sadness_mean,
-                             "emotion_angry": Emotion_angry_mean,
-                             "emotion_neutral": Emotion_neutral_mean,
-                             "gaze": Gaze_list, "face_angle": Roll_mean_value,
-                             "shoulder_angle": Shoulder_slope_mean_value,
-                             "left_shoulder": {"high_spot": Left_shoulder_max,
-                                               "low_spot": Left_shoulder_min,
-                                               "move_count": shoulder_vertically_left_count},
-                             "right_shoulder": {"high_spot": Right_shoulder_max,
-                                                "low_spot": Right_shoulder_min,
-                                                "move_count": shoulder_vertically_right_count},
-                             "center_shoulder": {"left_spot": Center_shoulder_max,
-                                                 "right_spot": Center_shoulder_min,
-                                                 "left_move_count": shoulder_horizontality_count_value[0],
-                                                 "right_move_count": shoulder_horizontality_count_value[1]},
-                             "left_hand": {"time": Left_Hand_time, "count": Left_Hand_count,
-                                           "point": Left_Hand_point_result},
-                             "right_hand": {"time": Right_Hand_time, "count": Right_Hand_count,
-                                            "point": Right_Hand_point_result}}
+    # result_data = OrderedDict()
+    # result_data["userkey"] = userkey
+    # result_data["videoNo"] = videoNo
+    # result_data["result"] = {"face_check": Face_analy_result, "sound_check": sound_confirm,
+    #                          "emotion_surprise": Emotion_surprise_mean, "emotion_fear": Emotion_fear_mean,
+    #                          "emotion_aversion": Emotion_disgust_mean, "emotion_happy": Emotion_happy_mean,
+    #                          "emotion_sadness": Emotion_sadness_mean,
+    #                          "emotion_angry": Emotion_angry_mean,
+    #                          "emotion_neutral": Emotion_neutral_mean,
+    #                          "gaze": Gaze_list, "face_angle": Roll_mean_value,
+    #                          "shoulder_angle": Shoulder_slope_mean_value,
+    #                          "left_shoulder": {"high_spot": Left_shoulder_max,
+    #                                            "low_spot": Left_shoulder_min,
+    #                                            "move_count": shoulder_vertically_left_count},
+    #                          "right_shoulder": {"high_spot": Right_shoulder_max,
+    #                                             "low_spot": Right_shoulder_min,
+    #                                             "move_count": shoulder_vertically_right_count},
+    #                          "center_shoulder": {"left_spot": Center_shoulder_max,
+    #                                              "right_spot": Center_shoulder_min,
+    #                                              "left_move_count": shoulder_horizontality_count_value[0],
+    #                                              "right_move_count": shoulder_horizontality_count_value[1]},
+    #                          "left_hand": {"time": Left_Hand_time, "count": Left_Hand_count,
+    #                                        "point": Left_Hand_point_result},
+    #                          "right_hand": {"time": Right_Hand_time, "count": Right_Hand_count,
+    #                                         "point": Right_Hand_point_result}}
 
     # 점수화_표준편차
-    Gaze_velue = Average.Gaze_Avg(Gaze_list)
-    Roll_velue = Roll_mean_value
+    Gaze_value = Average.Gaze_Avg(Gaze_list)
+    Roll_value = Roll_mean_value
     Shoulder_velue = Shoulder_slope_mean_value
     vertically_value = Average.vertically_Avg(Left_shoulder_max,
                                               Left_shoulder_min,
@@ -325,6 +318,9 @@ async def video_task(userkey, videoNo, videoaddress):
     print('Left_shoulder_max >>> ', Left_shoulder_max)
     print('Right_shoulder_max >>> ', Right_shoulder_max)
     print('Center_shoulder_min >>> ', Center_shoulder_min)
+    print('Left_shoulder >>>', Left_shoulder_list)
+
+
 
     gaze_dict = {"point": Gaze_list}
     left_shoulder_dict = {"high_spot": {"x": Left_shoulder_max[0], "y": Left_shoulder_max[1]},
@@ -367,12 +363,12 @@ async def video_task(userkey, videoNo, videoaddress):
     test.RIGHT_HAND_TIME = Right_Hand_time
     test.RIGHT_HAND_MOVE_COUNT = Right_Hand_count
 
-    test.GAZE_X_SCORE = scoring.GAZE_X_scoring(Gaze_velue[0])
-    test.GAZE_Y_SCORE = scoring.GAZE_Y_scoring(Gaze_velue[1])
+    test.GAZE_X_SCORE = scoring.GAZE_X_scoring(Gaze_value[0])
+    test.GAZE_Y_SCORE = scoring.GAZE_Y_scoring(Gaze_value[1])
     test.SHOULDER_VERTICAL_SCORE = scoring.SHOULDER_VERTICAL_scoring(vertically_value)
     test.SHOULDER_HORIZON_SCORE = scoring.SHOULDER_HORIZON_scoring(horizontally_value)
-    test.FACE_ANGLE_SCORE = scoring.FACE_ANGLE_scoring(Roll_velue)
-    test.GESTURE_SCORE = scoring.GESTURE_scoring(GestureTIME_value)
+    test.FACE_ANGLE_SCORE = scoring.FACE_ANGLE_scoring(Roll_value)
+    test.GESTURE_SCORE = scoring.SHOULDER_ANGLE_scoring(Shoulder_slope_mean_value)
 
 
     # test.left_shoulder = {"high_spot": {"x":Left_shoulder_max[0], "y":Left_shoulder_max[1]}, "low_spot": {"x":Left_shoulder_min[0], "y":Left_shoulder_min[1]},

@@ -69,26 +69,26 @@ def get_state_dict(origin_dict):
 # 초기화
 def Initialization():
     # face detector. OpenCV SSD
-    FD_Net = cv2.dnn.readNetFromCaffe("C:/Users/yuhay/Desktop/models_file/opencv_ssd.prototxt", "C:/Users/yuhay/Desktop/models_file/opencv_ssd.caffemodel")
+    FD_Net = cv2.dnn.readNetFromCaffe("C:/Users/withmind/Desktop/models/opencv_ssd.prototxt", "C:/Users/withmind/Desktop/models/opencv_ssd.caffemodel")
 
 
     # Landmark 모델
     Landmark_Net = LandmarkNet(3, 3)
     # # Landmark_Net = torch.nn.DataParallel(Landmark_Net).to(device)
     Landmark_Net = Landmark_Net.to(device)
-    Landmark_Net.load_state_dict(torch.load("C:/Users/yuhay/Desktop/models_file/ETRI_LANDMARK_68pt.pth.tar", map_location=device)['state_dict'])
+    Landmark_Net.load_state_dict(torch.load("C:/Users/withmind/Desktop/models/ETRI_LANDMARK_68pt.pth.tar", map_location=device)['state_dict'])
     # Landmark_Net.load_state_dict(torch.load("/home/ubuntu/projects/withmind_video/im_video/file/ETRI_LANDMARK_68pt.pth.tar", map_location=device)['state_dict'])
 
 
     # Headpose 모델
     Headpose_Net = HeadposeNet(torchvision.models.resnet.Bottleneck, [3, 4, 6, 3], 66)
     Headpose_Net = Headpose_Net.to(device)
-    Headpose_Net.load_state_dict(torch.load("C:/Users/yuhay/Desktop/models_file/ETRI_HEAD_POSE.pth.tar"))
+    Headpose_Net.load_state_dict(torch.load("C:/Users/withmind/Desktop/models/ETRI_HEAD_POSE.pth.tar"))
     # Headpose_Net.load_state_dict(torch.load("/home/ubuntu/projects/withmind_video/im_video/file/ETRI_HEAD_POSE.pth.tar"))
 
     # Emotion classifier
     Emotion_Net = EmotionNet(num_classes=7).to(device)
-    new_dict = get_state_dict(torch.load("C:/Users/yuhay/Desktop/models_file/ETRI_Emotion.pth.tar")['state_dict'])
+    new_dict = get_state_dict(torch.load("C:/Users/withmind/Desktop/models/ETRI_Emotion.pth.tar")['state_dict'])
     # # new_dict = get_state_dict(torch.load("/home/ubuntu/projects/withmind_video/im_video/file/ETRI_EMOTION.pth.tar")['state_dict'])
     Emotion_Net.load_state_dict(new_dict)
 
@@ -438,7 +438,7 @@ def soundcheck(self):
     sound = AudioFileClip(self)  # self = .mp4
 
     shortsound = sound.subclip("00:00:01", "00:00:10")  # audio from 1 to 10 seconds
-    fileroute = 'C:/Users/yuhay/Desktop/'
+    fileroute = 'C:/Users/withmind/Desktop/'
     filename = 'sound.wav'
     shortsound.write_audiofile(fileroute + filename, 44100, 2, 2000, "pcm_s32le")
 
@@ -447,14 +447,14 @@ def soundcheck(self):
     for i in y:
         if y[-0] == 0.00:
             print('음성확인 > ', False)
-            sound_result = False
+            sound_result = 1
             break
         else:
             if i == 0.00:
                 continue
             else:
                 print('음성확인 > ', True)
-                sound_result = True
+                sound_result = 0
                 break
 
     os.remove(fileroute + filename)
@@ -462,7 +462,7 @@ def soundcheck(self):
     return sound_result
 
 
-class soulder_Detector:
+class shoulder_Detector:
     # 어깨 상하
     def shoulder_vertically_left(left_shoulder, Landmark_list):
         # 랜드마크 리스트(5번) / 어깨 위아래 움직임 체크 기준
@@ -614,14 +614,14 @@ class shoulder_calculate:
 
 
 # 제스처 시간
-def Left_Hand_time_calculation(Left_hand_time_list):
-    Left_Hand_time = float(len(Left_hand_time_list) / 6)
+def Left_Hand_time_calculation(Left_Hand_point_result):
+    Left_Hand_time = float(len(Left_Hand_point_result) / 6)
 
     return Left_Hand_time
 
 
-def Right_Hand_time_calculation(Right_hand_time_list):
-    Right_Hand_time = float(len(Right_hand_time_list) / 6)
+def Right_Hand_time_calculation(Right_Hand_point_result):
+    Right_Hand_time = float(len(Right_Hand_point_result) / 6)
 
     return Right_Hand_time
 
@@ -688,7 +688,7 @@ class Average:
             return Right_Hand
 
 
-    def Average_csv(Gaze_velue, Roll_velue, Shoulder_velue,vertically_value, horizontally_value, GestureTIME_value):
+    def Average_csv(Gaze_value, Roll_value, Shoulder_value,vertically_value, horizontally_value, GestureTIME_value):
         # ftp = FTP()
         #
         # ftp.connect('withmind.cache.smilecdn.com', 21)
@@ -699,9 +699,9 @@ class Average:
 
         # CSV 누적
         headersCSV = ['Gaze', 'Roll', 'Shoulder', 'vertically', 'horizontally', 'GestureTIME']
-        dict = {'Gaze': Gaze_velue,
-                'Roll': Roll_velue,
-                'Shoulder': Shoulder_velue,
+        dict = {'Gaze': Gaze_value,
+                'Roll': Roll_value,
+                'Shoulder': Shoulder_value,
                 'vertically': vertically_value,
                 'horizontally': horizontally_value,
                 'GestureTIME': GestureTIME_value
